@@ -1,7 +1,8 @@
 ---
-layout: post
-title: Consistent Development Environments using Containers
-date:   2022-10-04 20:57:00
+layout: single
+title:  "Consistent Dev Environments with Remote Containers"
+date:   2022-10-04 18:45:03 -0600
+categories: jekyll update
 ---
 
 One of the most common concerns we dealt with while I was interning at Snow College's IT department was making sure onboarding future interns would be as easy as possible. We spent quite a few meetings talking about technical standards we'd follow and how they would be taught. Another aspect of making sure onboarding would be easy was standardizing development environments. Making sure you have all the right tools installed and configured correctly can be difficult when you've barely just started developing apps for real. I remember being occasionally blocked from making progress during my first few weeks with the IT department simply because I didn't yet understand what I needed to make everything run correctly.
@@ -10,7 +11,7 @@ Luckily, we found a solution that would limit the amount of time new hires would
 
 We all used VS Code as our IDEs when I worked at the IT department and it was a great tool for setting up development containers, so I'll be outlining how to do so in this article. te first step is to install the "Remote Development" extension for VS Code, which will allow you to attach VS Code to your development container. The next is to go to the top level of your project's directory and create a folder called ".devcontainer" and then add three files, "devcontainer.json", "Dockerfile", and "docker-compose.yml". First, I'll show you the Dockerfile I used for my last project at the IT department, which used Python and React:
 
-```Dockerfile
+{% highlight Dockerfile %}
 FROM almalinux:8
 
 RUN dnf -y install \
@@ -40,14 +41,14 @@ RUN python3 -m venv /home/developer/.virtualenvs/portal \
   && pip install --upgrade pip
 
 WORKDIR /app
+{% endhighlight %}
 
-```
 
 You can see from the first line that the development container being made here uses AlmaLinux as a base. You can then see on the second line all of the packages necessary for development being installed. The third and fourth lines create a user and set up permissions for them. The fifth line is  Python project-specific and sets up a venv for packages within the container.
 
 After setting up your Dockerfile, you can move on to "docker-compose.yml". Again, I'll show the one I used for my last project:
 
-```yml
+{% highlight yml %}
 version: '3'
 
 services:
@@ -116,14 +117,14 @@ volumes:
 
 networks:
   shared:
-```
+{% endhighlight %}
 
 This dockerfile sets up the dev container, along with containerized instances of postgres for development and testing. You'll notice some stuff going on with the "volumes" section of the "portal" (i.e dev) container. The first volume mounts a home directory for the developer user, the second mounts the project directory, and the third mounts the .ssh directory from your computer into the container. The last two load in configurations for bash and its git cli (these configurations were added by my supervisor, not me).
 Next, the "command" line starts up the Python backend api and the React frontend client. Lastly, some ports the backend and frontend use are mapped to ports on the machine running the container. I won't be talking about the Postgres containers since that's regular Docker stuff.
 
 Lastly, lets look at "devcontainer.json"
 
-```json
+{% highlight json %}
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.191.0/containers/docker-from-docker-compose
 {
@@ -159,7 +160,7 @@ Lastly, lets look at "devcontainer.json"
   // "initializeCommand": "export GID=$(id -g)",
   // "updateRemoteUserUID": true
 }
-```
+{% endhighlight %}
 
 This file, as you can probably tell from the comments, was created by Microsoft. It does things like let VS Code know where your docker-compose.yml file is, which service in the docker-compose.yml file encapsulates your dev container, how to shut down the dev container, what VS Code extensions you want in the dev container, and so on. It should be noted that this file can be configured to use just a Dockerfile instead of a whole docker-compose.yml file, but the latter method gives you a lot more to work with.
 
