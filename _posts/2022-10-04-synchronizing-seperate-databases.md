@@ -2,7 +2,7 @@
 layout: single
 title:  "Synchronizing Changes Between Two Separate Databases"
 date:   2022-10-04 18:49:00 -0600
-categories: jekyll update
+categories: databases python
 ---
 
 Around January of last year, my boss started discussing with me a new project he wanted me to work on. Snow College's student and employee portal had been showing its age and he wanted to start work on replacing it. The first part would be recreating the Snow's directory with a few added features. The most important one would be the ability for an authorized person in IT to edit employee data. Normally, this would be pretty simple, but it came with a catch. We couldn't actually change any original data in our Oracle database, which we'll call the Banner database. What my boss had in mind is that we would create a new Postgres database, which we'll call the Portal database, with a copy of the original data that we would then keep synchronized with the original database. When a change is made to either database, that authorized person from IT could then go into the directory and decide for themselves if those changes should be shown in the directory. There were a few rules as to how this would work:

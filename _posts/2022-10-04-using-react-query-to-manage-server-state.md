@@ -2,7 +2,7 @@
 layout: single
 title:  "Managing Remote Data with React-Query"
 date:   2022-10-04 19:00:00 -0600
-categories: jekyll update
+categories: react javascript web-dev
 ---
 
 While I was working on Snow College's new student portal, I had to find a way to manage data recieved from the server in my client. I had done this before in Vue, but it had been decided that we would be using React for new projects going forwards, so I had to figure out how to do things the React way. I had worked with Redux a little in the past and knew that was the most common way of managing application state in React, so that's where I started. What I found out is that Redux is good for your own application's state, but not quite as well suited for keeping data from another source up to date. It's important to keep in mind that when a client application recieves data from a server, that data doesn't really belong to the client. 

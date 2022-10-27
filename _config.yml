@@ -20,13 +20,17 @@
 
 title: Daniel Bigelow Software Engineer
 email: danielbigelowse@gmail.com
-description: >- # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+masthead_title: ""
+subtitle: ""
+description: "Portoflio website for Daniel Bigelow"
+logo: "/assets/img/portrait_88.png"
 baseurl: "/DanielBigelowPortfolio" # the subpath of your site, e.g. /blog
 url: "http://djbiglow.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 
+collections:
+  tags:
+    output: true
+    permalink: tags:/:path/
 
 include: ["_pages"]
 
@@ -36,6 +40,7 @@ paginate_path: "blog/page:num"
 # Build settings
 # theme: minima
 remote_theme: "mmistakes/minimal-mistakes"
+minimal_mistakes_skin: "dark"
 plugins:
   - jekyll-feed
   - jekyll-include-cache

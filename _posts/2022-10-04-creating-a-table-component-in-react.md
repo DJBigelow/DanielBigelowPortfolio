@@ -2,7 +2,7 @@
 layout: single
 title:  "Creating a table component in React"
 date:   2022-10-04 18:40:03 -0600
-categories: jekyll update
+categories: react javascript web-dev
 ---
 I recently worked on revamping Snow College's online directory. We had just switched from using Node.js and Vue to React and FastAPI and I needed to work out how to make a good reusable table component that could be used in my project along with other interns' projects. Since tables are a pretty common UI element, I first checked to see if there were any good packages that were being continuously maintained that I could leverage for my own needs so that I didn't end up reinventing the wheel. The most promising option I found was React Table, a set of hooks you can use to set up table component. The nice thing about React Table is that it gives you full control over how your tables are rendered, making them configurable for different situations. React Table also has support for efficient filtering, which really came in handy for this project.
 

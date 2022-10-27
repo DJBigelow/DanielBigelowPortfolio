@@ -2,7 +2,7 @@
 layout: single
 title:  "Consistent Dev Environments with Remote Containers"
 date:   2022-10-04 18:45:03 -0600
-categories: jekyll update
+categories: docker vs-code
 ---
 
 One of the most common concerns we dealt with while I was interning at Snow College's IT department was making sure onboarding future interns would be as easy as possible. We spent quite a few meetings talking about technical standards we'd follow and how they would be taught. Another aspect of making sure onboarding would be easy was standardizing development environments. Making sure you have all the right tools installed and configured correctly can be difficult when you've barely just started developing apps for real. I remember being occasionally blocked from making progress during my first few weeks with the IT department simply because I didn't yet understand what I needed to make everything run correctly.
