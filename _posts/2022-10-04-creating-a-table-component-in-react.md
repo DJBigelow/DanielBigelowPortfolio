@@ -211,7 +211,7 @@ export const Directory = () => {
 }
 {% endhighlight %}
 
-Here's what the table looks like: ![]({{site.baseurl}}/../../assets/img/portal/DirectorySearch.gif)
+Here's what the table looks like: ![]({{site.baseurl}}/assets/img/portal/DirectorySearch.gif)
 
 Pretty straightforward. What I have here is a table of employees where individual employees can be inspected in detail by clicking on them. Records can be filtered by any column, and the "Department" and "Office Building" columns are hidden to remove clutter. I enjoyed being able to provide accessors for columns, which can help safeguard you from making typos when specifying properties to be accessed, or prevent you from trying to access a property that has been changed or removed. I also liked just how easy it was to add powerful filter functionality to the table. All in all, React Table turned out to be a great choice.
 
