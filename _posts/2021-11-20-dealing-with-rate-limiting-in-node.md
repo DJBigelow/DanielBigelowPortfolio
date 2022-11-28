@@ -13,7 +13,7 @@ The problem occured when testing posting an assignment for multiple days a week 
 
 We were using Node + Express for our backend at the time and Axios for HTTP web requests. My idea for limiting the total number of requests happening at once was to make a limited size pool of Axios instances that web requests would have to be made through. I found a lightweight (library)[https://github.com/coopernurse/node-pool] for creating pools of generic resources and used it to create a service for acquiring and releasing Axios instances.   
 
-```js
+{% highlight javascript %}
 import * as GenericPool from 'generic-pool'
 import axios, {AxiosInstance} from 'axios'
 
@@ -48,7 +48,8 @@ export default class AxiosPoolService {
     this.requestPool.release(axiosInstance)
   }
 }
-```
+{% endhighlight%}
+
 
 In testing, this improved the situation but couldn't completely resolve it, even when fine-tuning the pool size. I could've reduced the pool size to 1, but at that point I may as well have made each request sequentially, which my supervisor felt would be too slow and wanted to keep as a backup in case other solutions failed. Luckily, the next part of the solution worked out well.
 
@@ -56,7 +57,7 @@ In testing, this improved the situation but couldn't completely resolve it, even
 
 My next move was to run the Axios requests through a circuit breaker. A circuit breaker is a mechanism that will monitor the status of jobs fed through it and trip if a certain number or percentage of those jobs fail. When the circuit breaker trips, it will wait a given amount of time before resetting and allowing jobs to start running again. This solution was a great fit for the problem at hand as when requests would start failing due to rate limiting, the circuit breaker would delay them for a given time, allowing the rate limiter time to start accepting requests again. Below is my code utilizing the [Opossum](https://github.com/nodeshift/opossum) library's circuit breaker:
 
-```js
+{% highlight javascript %}
   async submitAssignments(courseId: number, attendanceDates: Date[]) {
     const assignmentGroup = await this.getOrCreateAttendanceAssigmentGroup(courseId);
 
@@ -91,6 +92,6 @@ My next move was to run the Axios requests through a circuit breaker. A circuit 
     await this.axiosPost(axiosInstance, url, data, options)
     axiosPoolService.releaseResource(axiosInstance)
   }
-```
+{% endhighlight%}
 
 In the end, I was able to quickly create assignments for every day of a semester without any of them not being posted due to rate limiting.

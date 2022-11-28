@@ -16,7 +16,7 @@ categories: javascript node
 
 Let's start from the top level and work our way down through my Game of life solver. First off is the *run* function which simply takes in a starting board of cells and returns that board after a specified number of generations have elapsed.
 
-```JavaScript
+{% highlight javascript %}
 export const run = (startingBoard, numGenerations) => {
     let currentBoard = startingBoard;
     
@@ -26,11 +26,12 @@ export const run = (startingBoard, numGenerations) => {
 
     return currentBoard;
 };
-```
+{% endhighlight%}
+
 
 *solveGeneration* first determines which cells should die in the following generation, finds all dead cells adjacent to live cells, revives any dead cells with three live neighbors, and then combines the lists of survived and revived cells
 
-```JavaScript
+{% highlight javascript %}
 export const solveGeneration = (board) => {
     let survivedCells = killCells(board);
 
@@ -40,21 +41,21 @@ export const solveGeneration = (board) => {
 
     return survivedCells.concat(revivedCells);
 };
-```
+{% endhighlight%}
 
 *killCells* simulates rules one and three by filtering out any cells from a given board with zero, one, or four or more neighbors
 
-```JavaScript
+{% highlight javascript %}
 export const killCells = (liveCells) => {
     return liveCells.filter(c => numNeighbors(c, liveCells) > 1 && 
                                  numNeighbors(c, liveCells) < 4
     );
 };
-```
+{% endhighlight%}
 
 The return statement in *areNeighbors* only return true if the two input cells are horizontally, vertically, or diagonally adjacent to each other. *numNeighbors* filters out any cells not adjacent to a given cell and returns their count.
 
-```JavaScript
+{% highlight javascript %}
 export const numNeighbors = (cell, board) => {
     return board.filter(c => areNeighbors(cell, c)).length;
 };
@@ -66,11 +67,11 @@ export const areNeighbors = (cell1, cell2) => {
     //Return true if both delta x and y are no greater than one and at least one is equal to 1 
     return (deltaX <= 1 && deltaY <= 1) && (deltaX == 1 || deltaY == 1);
 }
-```
+{% endhighlight%}
 
 *getAdjacentCells* iterates through each live cell and gets its neighboring cells, dead or alive. Each neighboring cell is added to a list if it hasn't already, and then that list of cells is returned after any live cells are filtered out of it.  
 
-```JavaScript
+{% highlight javascript %}
 export const getAdjacentDeadCells = (liveCells) => {
     let adjacentCells = [];
 
@@ -90,21 +91,21 @@ export const getAdjacentDeadCells = (liveCells) => {
                 !liveCells.some(liveCell => liveCell.x === cell.x && liveCell.y === cell.y));
     
 };
-```
+{% endhighlight%}
 
 *getRevivedCells* simulates rule 4 by returning all cells in a list of dead cells with exactly three live neighbors
 
-```JavaScript
+{% highlight javascript %}
 export const getRevivedCells = (deadCells, liveCells) => {
     return deadCells.filter(deadCell => numNeighbors(deadCell, liveCells) == 3)
 };
-```
+{% endhighlight%}
 
 ## Visualizing the Results
 
 *visualizeBoard* converts a given board of cells to a string. It does so by finding the extremes of the board and iterating over each pair of coordinates within their ranges. For each pair of coordinates, we check to see if a cell is there and append an "O" to the board's string representation if so and a space if not.
 
-```JavaScript
+{% highlight javascript %}
 const visualizeBoard = (board) => {
 
     let boardString = "";
@@ -131,11 +132,11 @@ const visualizeBoard = (board) => {
 
     return boardString;
 }
-```
+{% endhighlight%}
 
 One simple way of printing out the results of the program is through the browser. To do that, I created a simple express api that calculates the resulting board after a given number of generations from a static board, [the acorn](https://www.youtube.com/watch?v=Aq51GfPmD54).
 
-```JavaScript
+{% highlight javascript %}
 const acorn = [ new Cell(1, 1),
                 new Cell(2, 1),
                 new Cell(2, 3),
@@ -158,7 +159,7 @@ app.get('/board', (req, res) => {
 var server = app.listen(8080, () => {
     console.log(`Listening at http://${server.address().address}:${server.address().port}`);
 })
-```
+{% endhighlight%}
 
 ![Acorn Visualization after 100 Generations](https://i.imgur.com/8YaJi5a.png)
 
@@ -166,7 +167,7 @@ var server = app.listen(8080, () => {
 
 I've shown all there is to show for my solver, but if you're interested in seeing them, I also have a suite of passing tests. Their presence was invaluable, as manually verifying the results of a program such as this is tedious and error-prone.
 
-```JavaScript
+{% highlight javascript %}
 const adjacentCells =[
     new Cell(1, 3), new Cell(2, 3), new Cell(3, 3),
     new Cell(1, 2),                 new Cell(3, 2),
@@ -320,4 +321,4 @@ test ('Any dead cell with exactly three live neighbors becomes a live cell, as i
 
     expect(actualBoard).toEqual(expectedBoard);
 })
-```
+{% endhighlight%}
