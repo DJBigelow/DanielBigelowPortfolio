@@ -43,7 +43,6 @@ def start_change_detection():
 Lower down, the code looks like this:
 
 {% highlight javascript %}
-# change_detection_service.py
 
 def detect_and_commit_changes():
     banner_employees: List[Employee] = banner_employee_repository.get_banner_employees()
@@ -73,7 +72,6 @@ def detect_and_commit_changes():
 And at the bottom, the code looks like this:
 
 {% highlight python %}
-# change_detection_helpers.py
 
 def group_banner_and_portal_employee_entries(banner_employees: List[Employee], portal_employees: List[Employee]):
    
