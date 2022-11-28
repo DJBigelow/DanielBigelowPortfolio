@@ -1,7 +1,7 @@
 ---
 layout: single
 title:  "Dealing With Rate-Limiting in Node"
-date:   2022-11-19 19:00:00 -0600
+date:   2021-11-20 19:00:00 -0600
 categories: javascript node web-dev
 ---
 
