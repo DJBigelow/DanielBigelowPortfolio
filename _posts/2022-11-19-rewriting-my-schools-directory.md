@@ -69,7 +69,24 @@ There were also issues with Snow's original online directory. Entering a search 
 
 I'll only give a high-level overview of how I solved this problem here. If you want a more slightly more in-depth look at the technical details, I give one in [this article]({{site.baseurl}}{% post_url 2022-10-04-synchronizing-seperate-databases%}). 
 
-First, I created a Python + FastAPI server with an endpoint that would trigger the change detection process when it was hit. When the change detection process started, it would query all employees from both databases and group the employee records by their Snow IDs. The process would then compare each column/attribute of each pair of employee records with each other to find any differences. When differences were found, they would be inserted into a table labeled "pending_change" in the Portal database, but not if the change had already been approved and tracked in a Portal database table labeled "historical_change". From there, an admin could review any pending changes through the new portal and approve/discard them. Changes that were approved would be tracked in the "historical_change" table to prevent them from needing to be reviewed again, like I mentioned before. Approving a change would mean that no data in the Portal DB would get changed. Discarding a change would mean that the differing column/attribute of the Portal employee would be overridden by the value of the column/attribute of the corresponding Banner DB entry.
+First, I created a Python + FastAPI server with an endpoint that would trigger the change detection process when it was hit. When the change detection process started, it would query all employees from both databases and group the employee records by their Snow IDs. The process would then compare each column/attribute of each pair of employee records with each other to find any differences. When differences were found, they would be inserted into a table labeled "pending_change" in the Portal database, but not if the change had already been approved and tracked in a Portal database table labeled "historical_change". Below, you can see how it's checked to see if a change has already been tracked:
+
+
+{% highlight python %}
+def historical_change_exists_for_pending_change(pending_change: PendingChange, historical_changes: List[HistoricalChange]) -> bool:
+    return any([
+            historical_change_covers_pending_change(pending_change, historical_change) 
+            for historical_change in historical_changes
+        ]
+    )
+
+def historical_change_covers_pending_change(pending_change: PendingChange, historical_change: HistoricalChange) -> bool:
+    return (pending_change.portal_column == historical_change.portal_column and 
+            pending_change.banner_value == historical_change.banner_value and
+            pending_change.portal_value == historical_change.portal_value)
+{% endhighlight %}
+
+From there, an admin could review any pending changes through the new portal and approve/discard them. Changes that were approved would be tracked in the "historical_change" table to prevent them from needing to be reviewed again, like I mentioned before. Approving a change would mean that no data in the Portal DB would get changed. Discarding a change would mean that the differing column/attribute of the Portal employee would be overridden by the value of the column/attribute of the corresponding Banner DB entry.
 
 Here's an activity diagram of the process: 
 
@@ -91,116 +108,7 @@ Here's the detail view of an employee, complete with controls to copy the viewed
 
 ![]({{site.baseurl}}/assets/img/portal/EmployeeDetail.png)
 
-And here's the code for displaying that information:
 
-{% highlight javascript %}
-import { useState } from "react";
-import Employee from "../models/Employee";
-
-type EmployeeCardProps = {
-  employee: Employee;
-  admin: boolean;
-};
-
-export const EmployeeCard = ({ employee, admin }: EmployeeCardProps) => {
-  const [emailCopied, setEmailCopied] = useState(false);
-
-  return (
-    <div className="card">
-      <div className="card-title mb-3 ps-3">
-        <h4 className="display-4">{employee.fullDisplayName}</h4>
-      </div>
-
-      <div className="card-body pt-0">
-        {/* Email + copy button */}
-        <div className="row d-flex justify-content-start align-items-start">
-          
-          {admin && (
-            <div>
-
-              <div className="row">
-                <p>
-                  <b>Badger ID:</b> {employee.id}
-                </p>
-              </div>
-
-              <div className="row">
-                <p>
-                  <b>Real First Name:</b> {employee.realFirstName}
-                </p>
-              </div>
-
-              <div>
-                <p>
-                  <b>Preferred First Name:</b> {employee.preferredFirstName}
-                </p>
-              </div>
-            </div>
-          )}
-
-          <p className="col-auto">
-            <b>Email:</b> {`${employee.snowEmail}`}
-          </p>
-          <button
-            disabled={
-              employee.snowEmail === undefined ||
-              employee.snowEmail === Employee.undefinedPropertyFallback
-            }
-            className="btn btn-primary btn-sm col-auto"
-            onClick={() => {
-              navigator.clipboard.writeText(employee.snowEmail as string);
-              setEmailCopied(true);
-            }}
-          >
-            <i
-              className={
-                emailCopied ? "bi bi-clipboard-check" : "bi bi-clipboard"
-              }
-            />
-          </button>
-        </div>
-
-        <div className="row">
-          <p>
-            <b>Department:</b> {employee.department}
-          </p>
-        </div>
-
-        <div className="row">
-          <p>
-            <b>Position:</b> {employee.position}
-          </p>
-        </div>
-
-        <div className="row">
-          <p>
-            <b>Campus:</b> {employee.campus}
-          </p>
-        </div>
-
-        <div className="row">
-          <p>
-            <b>Building:</b> {employee.building}
-          </p>
-        </div>
-
-        <div className="row">
-          <p>
-            <b>Office Room Number:</b> {employee.roomNumber}
-          </p>
-        </div>
-
-        <div className="row">
-          <p>
-            <b>Office Phone Number:</b> {employee.fullDisplayOfficePhone}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-{% endhighlight %}
 
 Administrators get a different view of the table:
 
@@ -213,6 +121,57 @@ Admins also get to see more information in the detail view of an employee.
 They also have a button they can click that brings up a form for editing the employee being viewed:
 
 ![]({{site.baseurl}}/assets/img/portal/EditValidation.png)
+
+
+
+
+## Appendix
+
+This section is for briefly highlighting code that would disrupt the flow of the article if placed anywhere earlier. 
+
+Below is the schema used for the Portal database:
+
+{% highlight sql %}
+CREATE TABLE employee (
+  "ID"                      VARCHAR(9) PRIMARY KEY,
+  "DISP_FIRST_NAME"         VARCHAR(60),
+  "FIRST_NAME"              VARCHAR(60),
+  "PREF_NAME"               VARCHAR(60),
+  "MI"                      VARCHAR(60),
+  "LAST_NAME"               VARCHAR(240),
+  "SNOW_EMAIL"              VARCHAR(128),
+  "POSN"                    VARCHAR(6),
+  "POSITION"                VARCHAR(120),
+  "DEPT_CODE"               VARCHAR(30),
+  "DEPT_DESC"               VARCHAR(60),
+  "CAMPUS"                  VARCHAR(30),
+  "OFFICE_BLDG_CODE"        VARCHAR(30),
+  "BUILDING_DESC"           VARCHAR(60),
+  "OFFICE_ROOM"             VARCHAR(12),
+  "OFFICE_AREA"             VARCHAR(6),
+  "OFFICE_PHONE"            VARCHAR(12)
+);
+
+CREATE SEQUENCE pending_change_id_seq;
+CREATE SEQUENCE historical_change_id_seq;
+
+CREATE TABLE pending_change (
+  id                INT DEFAULT NEXTVAL('pending_change_id_seq') PRIMARY KEY,
+  badger_id         VARCHAR(9) REFERENCES employee("ID") ON DELETE CASCADE,
+  portal_column     VARCHAR(32),
+  banner_value      TEXT,
+  portal_value      TEXT
+);
+
+CREATE TABLE historical_change (
+  id                INT DEFAULT NEXTVAL('historical_change_id_seq') PRIMARY KEY,
+  badger_id         VARCHAR(9) REFERENCES employee("ID") ON DELETE CASCADE,
+  approval_time     TIMESTAMP,
+  portal_column     VARCHAR(32),
+  banner_value      TEXT,
+  portal_value      TEXT
+);
+{% endhighlight %}
 
 Here's the code for the form for editing an employee's information. Most of the form components weren't written by me, so I won't be showing them off:
 
@@ -377,5 +336,113 @@ export const EmployeeEditForm = ({ employee }: EmployeeEditFormProps) => {
 
 If you're curious about what's up with the QueryResult checks or the useUpdateEmployeeMutation hook, check out [this article]({{site.baseurl}}{% post_url 2022-10-04-using-react-query-to-manage-server-state%}). You can also see the rest of the code for the project [here](https://github.com/DJBigelow/Capstone). Keep in mind that some parts of the project weren't written by me (mostly just the redux stuff in the frontend and the landing page) and that some code isn't included just to be safe security-wise.
 
+Finally, here's the code for displaying an employee's information:
 
+{% highlight javascript %}
+import { useState } from "react";
+import Employee from "../models/Employee";
 
+type EmployeeCardProps = {
+  employee: Employee;
+  admin: boolean;
+};
+
+export const EmployeeCard = ({ employee, admin }: EmployeeCardProps) => {
+  const [emailCopied, setEmailCopied] = useState(false);
+
+  return (
+    <div className="card">
+      <div className="card-title mb-3 ps-3">
+        <h4 className="display-4">{employee.fullDisplayName}</h4>
+      </div>
+
+      <div className="card-body pt-0">
+        {/* Email + copy button */}
+        <div className="row d-flex justify-content-start align-items-start">
+          
+          {admin && (
+            <div>
+
+              <div className="row">
+                <p>
+                  <b>Badger ID:</b> {employee.id}
+                </p>
+              </div>
+
+              <div className="row">
+                <p>
+                  <b>Real First Name:</b> {employee.realFirstName}
+                </p>
+              </div>
+
+              <div>
+                <p>
+                  <b>Preferred First Name:</b> {employee.preferredFirstName}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <p className="col-auto">
+            <b>Email:</b> {`${employee.snowEmail}`}
+          </p>
+          <button
+            disabled={
+              employee.snowEmail === undefined ||
+              employee.snowEmail === Employee.undefinedPropertyFallback
+            }
+            className="btn btn-primary btn-sm col-auto"
+            onClick={() => {
+              navigator.clipboard.writeText(employee.snowEmail as string);
+              setEmailCopied(true);
+            }}
+          >
+            <i
+              className={
+                emailCopied ? "bi bi-clipboard-check" : "bi bi-clipboard"
+              }
+            />
+          </button>
+        </div>
+
+        <div className="row">
+          <p>
+            <b>Department:</b> {employee.department}
+          </p>
+        </div>
+
+        <div className="row">
+          <p>
+            <b>Position:</b> {employee.position}
+          </p>
+        </div>
+
+        <div className="row">
+          <p>
+            <b>Campus:</b> {employee.campus}
+          </p>
+        </div>
+
+        <div className="row">
+          <p>
+            <b>Building:</b> {employee.building}
+          </p>
+        </div>
+
+        <div className="row">
+          <p>
+            <b>Office Room Number:</b> {employee.roomNumber}
+          </p>
+        </div>
+
+        <div className="row">
+          <p>
+            <b>Office Phone Number:</b> {employee.fullDisplayOfficePhone}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+{% endhighlight %}
