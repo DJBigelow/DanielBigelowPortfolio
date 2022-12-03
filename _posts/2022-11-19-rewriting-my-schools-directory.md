@@ -69,22 +69,7 @@ There were also issues with Snow's original online directory. Entering a search 
 
 I'll only give a high-level overview of how I solved this problem here. If you want a more slightly more in-depth look at the technical details, I give one in [this article]({{site.baseurl}}{% post_url 2022-10-04-synchronizing-seperate-databases%}). 
 
-First, I created a Python + FastAPI server with an endpoint that would trigger the change detection process when it was hit. When the change detection process started, it would query all employees from both databases and group the employee records by their Snow IDs. The process would then compare each column/attribute of each pair of employee records with each other to find any differences. When differences were found, they would be inserted into a table labeled "pending_change" in the Portal database, but not if the change had already been approved and tracked in a Portal database table labeled "historical_change". Below, you can see how it's checked to see if a change has already been tracked:
-
-
-{% highlight python %}
-def historical_change_exists_for_pending_change(pending_change: PendingChange, historical_changes: List[HistoricalChange]) -> bool:
-    return any([
-            historical_change_covers_pending_change(pending_change, historical_change) 
-            for historical_change in historical_changes
-        ]
-    )
-
-def historical_change_covers_pending_change(pending_change: PendingChange, historical_change: HistoricalChange) -> bool:
-    return (pending_change.portal_column == historical_change.portal_column and 
-            pending_change.banner_value == historical_change.banner_value and
-            pending_change.portal_value == historical_change.portal_value)
-{% endhighlight %}
+First, I created a Python + FastAPI server with an endpoint that would trigger the change detection process when it was hit. When the change detection process started, it would query all employees from both databases and group the employee records by their Snow IDs. The process would then compare each column/attribute of each pair of employee records with each other to find any differences. When differences were found, they would be inserted into a table labeled "pending_change" in the Portal database, but not if the change had already been approved and tracked in a Portal database table labeled "historical_change".
 
 From there, an admin could review any pending changes through the new portal and approve/discard them. Changes that were approved would be tracked in the "historical_change" table to prevent them from needing to be reviewed again, like I mentioned before. Approving a change would mean that no data in the Portal DB would get changed. Discarding a change would mean that the differing column/attribute of the Portal employee would be overridden by the value of the column/attribute of the corresponding Banner DB entry.
 
@@ -96,7 +81,7 @@ Here's what the process of approving/discarding changes looks like:
 
 ![]({{site.baseurl}}/assets/img/portal/ChangeDetection.gif)
 
-
+The test cases that help show this process works correctly can be found in the files [here](https://github.com/DJBigelow/Capstone/tree/master/portal/api/src/tests/directory).
 
 ### Online Directory
 
